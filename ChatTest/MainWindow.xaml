@@ -1,0 +1,39 @@
+﻿<Window x:Class="ChatTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChatTest"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+
+    <!-- Definición de estilos -->
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Área de mensajes -->
+        <ListBox x:Name="MessageListBox" Grid.Row="0" Margin="10" Background="#FF2D2D2D" Foreground="White" />
+
+        <!-- Área de entrada de texto y botón de enviar -->
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="MessageTextBox" Grid.Column="0" Margin="0,0,10,0" Background="#FF3C3C3C" Foreground="White" />
+            <Button x:Name="SendButton" Grid.Column="1" Content="Enviar" Width="100" Click="SendButton_Click" Background="#FF7289DA" Foreground="White" />
+        </Grid>
+    </Grid>
+</Window>
