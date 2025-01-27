@@ -15,25 +15,42 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Área para ingresar el nombre de usuario -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="10">
+            <TextBox x:Name="UsernameTextBox" Width="200" />
+            <Button x:Name="ConfirmUsernameButton" Content="Confirmar" Margin="10,0,0,0" Click="ConfirmUsernameButton_Click" />
+        </StackPanel>
 
         <!-- Área de mensajes -->
-        <ListBox x:Name="MessageListBox" Grid.Row="0" Margin="10" Background="#FF2D2D2D" Foreground="White" />
+        <ListBox x:Name="MessageListBox" Grid.Row="1" Grid.Column="0" Margin="10" />
+
+        <!-- Lista de usuarios conectados -->
+        <StackPanel Grid.Column="1" Margin="10">
+            <TextBlock Text="Usuarios conectados:" FontWeight="Bold" Margin="0,0,0,10"/>
+            <ListBox x:Name="UserListBox" />
+        </StackPanel>
 
         <!-- Área de entrada de texto y botón de enviar -->
-        <Grid Grid.Row="1" Margin="10">
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="MessageTextBox" Grid.Column="0" Margin="0,0,10,0" Background="#FF3C3C3C" Foreground="White" />
-            <Button x:Name="SendButton" Grid.Column="1" Content="Enviar" Width="100" Click="SendButton_Click" Background="#FF7289DA" Foreground="White" />
+            <TextBox x:Name="MessageTextBox" Grid.Column="0" Margin="0,0,10,0" IsEnabled="False" />
+            <Button x:Name="SendButton" Grid.Column="1" Content="Enviar" Width="100" IsEnabled="False" Click="SendButton_Click" />
         </Grid>
     </Grid>
 </Window>
