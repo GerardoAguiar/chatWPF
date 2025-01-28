@@ -30,7 +30,7 @@
         <!-- Área para ingresar el nombre de usuario -->
         <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="10">
             <TextBox x:Name="UsernameTextBox" Width="200" />
-            <Button x:Name="ConfirmUsernameButton" Content="Confirmar" Margin="10,0,0,0" Click="ConfirmUsernameButton_Click" />
+            <Button x:Name="ConfirmUsernameButton" Content="Confirm" Margin="10,0,0,0" Click="ConfirmUsernameButton_Click" />
         </StackPanel>
 
         <!-- Área de mensajes -->
@@ -38,7 +38,7 @@
 
         <!-- Lista de usuarios conectados -->
         <StackPanel Grid.Column="1" Margin="10">
-            <TextBlock Text="Usuarios conectados:" FontWeight="Bold" Margin="0,0,0,10"/>
+            <TextBlock Text="Users Connected:" FontWeight="Bold" Margin="0,0,0,10"/>
             <ListBox x:Name="UserListBox" />
         </StackPanel>
 
@@ -49,8 +49,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="MessageTextBox" Grid.Column="0" Margin="0,0,10,0" IsEnabled="False" />
-            <Button x:Name="SendButton" Grid.Column="1" Content="Enviar" Width="100" IsEnabled="False" Click="SendButton_Click" />
+            <TextBox x:Name="MessageTextBox" Grid.Column="0" Margin="0,0,10,0" IsEnabled="False" KeyDown="MessageInput_KeyDown"/>
+            <Button x:Name="SendButton" Grid.Column="1" Content="Send" Width="100" IsEnabled="False" Click="SendButton_Click" />
         </Grid>
     </Grid>
 </Window>

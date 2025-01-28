@@ -1,16 +1,7 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
 using Microsoft.AspNetCore.SignalR.Client;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Windows.Input;
 
 
 namespace ChatTest
@@ -34,7 +25,6 @@ namespace ChatTest
             // Escuchar mensajes entrantes
             _connection.On<string, string>("ReceiveMessage", (user, message) =>
             {
-                Debug.WriteLine($"Evento ReceiveMessage recibido: {user}: {message}");
                 Dispatcher.Invoke(() =>
                 {
                     MessageListBox.Items.Add($"{user}: {message}");
@@ -42,29 +32,26 @@ namespace ChatTest
             });
 
             // Escuchar cuando un usuario se conecta
-            _connection.On<string>("UserConnected", (user) =>
+            _connection.On<string, string>("UserConnected", (user, connectionTime) =>
             {
-                Debug.WriteLine($"Evento UserConnected recibido: {user}");
                 Dispatcher.Invoke(() =>
                 {
-                    MessageListBox.Items.Add($"{user} se ha conectado.");
+                    MessageListBox.Items.Add($"The {user} is connected at {connectionTime}");
                 });
             });
 
             // Escuchar cuando un usuario se desconecta
-            _connection.On<string>("UserDisconnected", (user) =>
+            _connection.On<string, string, string>("UserDisconnected", (user, connectionTime, disconnectTime) =>
             {
-                Debug.WriteLine($"Evento UserDisconnected recibido: {user}");
                 Dispatcher.Invoke(() =>
                 {
-                    MessageListBox.Items.Add($"{user} se ha desconectado.");
+                    MessageListBox.Items.Add($"The {user} is disconnected. Disconnected at {disconnectTime}");
                 });
             });
 
             // Escuchar actualizaciones de la lista de usuarios conectados
             _connection.On<List<string>>("UpdateUserList", (userList) =>
             {
-                Debug.WriteLine($"Evento UpdateUserList recibido: {string.Join(", ", userList)}");
                 Dispatcher.Invoke(() =>
                 {
                     UserListBox.Items.Clear();
@@ -78,8 +65,7 @@ namespace ChatTest
             try
             {
                 await _connection.StartAsync();
-                Debug.WriteLine("Conectado al servidor.");
-                MessageListBox.Items.Add("Conectado al servidor.");
+                MessageListBox.Items.Add("Connected to the server.");
             }
             catch (System.Exception ex)
             {
@@ -90,13 +76,13 @@ namespace ChatTest
 
 
 
-        private void ConfirmUsernameButton_Click(object sender, RoutedEventArgs e)
+        private async void ConfirmUsernameButton_Click(object sender, RoutedEventArgs e)
         {
             string username = UsernameTextBox.Text;
 
             if (string.IsNullOrWhiteSpace(username))
             {
-                MessageBox.Show("Por favor, ingresa un nombre de usuario válido.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter a valid username.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             else
             {
@@ -105,13 +91,20 @@ namespace ChatTest
                 ConfirmUsernameButton.IsEnabled = false;
                 MessageTextBox.IsEnabled = true;
                 SendButton.IsEnabled = true;
-                MessageListBox.Items.Add($"Nombre de usuario confirmado: {_username}");
+                MessageListBox.Items.Add($"Username confirm: {_username}");
 
-                // Enviar el nombre de usuario al servidor
-                Debug.WriteLine($"Enviando nombre de usuario al servidor: {_username}");
-                _connection.SendAsync("SetUsername", _username);
+                // Enviar el nombre de usuario al servidor solo después de que la conexión esté establecida
+                if (_connection.State == HubConnectionState.Connected)
+                {
+                    await _connection.SendAsync("SetUsername", _username);
+                }
+                else
+                {
+                    MessageListBox.Items.Add("Error: No connection to the server has been established.");
+                }
             }
         }
+
 
         private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
@@ -128,6 +121,14 @@ namespace ChatTest
                 {
                     MessageListBox.Items.Add($"Error: {ex.Message}");
                 }
+            }
+        }
+
+        private void MessageInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                SendButton_Click(sender, e);
             }
         }
     }

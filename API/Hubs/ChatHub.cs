@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -8,7 +9,7 @@ namespace API.Hubs
     public class ChatHub : Hub
     {
         // Lista de usuarios conectados (compartida entre todas las instancias del Hub)
-        private static ConcurrentDictionary<string, string> _users = new ConcurrentDictionary<string, string>();
+        private static ConcurrentDictionary<string, (string Username, string ConnectionTime)> _users = new ConcurrentDictionary<string, (string, string)>();
         private readonly ILogger<ChatHub> _logger;
 
         public ChatHub(ILogger<ChatHub> logger)
@@ -19,7 +20,6 @@ namespace API.Hubs
         // Método para enviar mensajes
         public async Task SendMessage(string user, string message)
         {
-            _logger.LogInformation($"Mensaje recibido de {user}: {message}");
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
 
@@ -31,9 +31,13 @@ namespace API.Hubs
 
             if (!string.IsNullOrEmpty(username))
             {
-                _users[connectionId] = username;
-                _logger.LogInformation($"Usuario conectado: {username}");
-                await Clients.All.SendAsync("UserConnected", username); // Enviar evento UserConnected
+                // Registrar la hora y fecha de conexión
+                string connectionTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+                _users[connectionId] = (username, connectionTime);
+
+                await Clients.All.SendAsync("UserConnected", username, connectionTime); // Enviar evento UserConnected con la hora
+                await UpdateUserList(); // Actualizar la lista de usuarios conectados
             }
 
             await base.OnConnectedAsync();
@@ -44,10 +48,14 @@ namespace API.Hubs
         {
             string connectionId = Context.ConnectionId;
 
-            if (_users.TryRemove(connectionId, out string username))
+            if (_users.TryRemove(connectionId, out var userInfo))
             {
-                _logger.LogInformation($"Usuario desconectado: {username}");
-                await Clients.All.SendAsync("UserDisconnected", username); // Enviar evento UserDisconnected
+                string username = userInfo.Username;
+                string connectionTime = userInfo.ConnectionTime;
+                string disconnectTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+                await Clients.All.SendAsync("UserDisconnected", username, connectionTime, disconnectTime); // Enviar evento UserDisconnected con la hora de desconexión
+                await UpdateUserList(); // Actualizar la lista de usuarios conectados
             }
 
             await base.OnDisconnectedAsync(exception);
@@ -56,9 +64,26 @@ namespace API.Hubs
         // Método para actualizar la lista de usuarios conectados
         private async Task UpdateUserList()
         {
-            var userList = _users.Values.ToList();
-            _logger.LogInformation($"Actualizando lista de usuarios: {string.Join(", ", userList)}");
-            await Clients.All.SendAsync("UpdateUserList", userList); // Enviar evento UpdateUserList
+            var userList = _users.Values.Select(u => $"{u.Username}").ToList();
+            await Clients.All.SendAsync("UpdateUserList", userList); // Enviar evento UpdateUserList con la hora de conexión
+        }
+
+        // Método para recibir y establecer el nombre de usuario
+        public async Task SetUsername(string username)
+        {
+            string connectionId = Context.ConnectionId;
+            if (!string.IsNullOrEmpty(username))
+            {
+                // Guardamos el nombre de usuario y la hora de conexión
+                string connectionTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                _users[connectionId] = (username, connectionTime);
+
+                // Enviar evento a todos los clientes sobre el nuevo usuario conectado
+                await Clients.All.SendAsync("UserConnected", username, connectionTime);
+
+                // Actualizamos la lista de usuarios conectados
+                await UpdateUserList();
+            }
         }
     }
 }
