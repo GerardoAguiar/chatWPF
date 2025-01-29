@@ -12,15 +12,22 @@ namespace API.Hubs
         private static ConcurrentDictionary<string, (string Username, string ConnectionTime)> _users = new ConcurrentDictionary<string, (string, string)>();
         private readonly ILogger<ChatHub> _logger;
 
+        private static readonly Dictionary<string, List<string>> Rooms = new()
+    {
+        { "General", new List<string>() },
+        { "Management", new List<string>() },
+        { "Agents", new List<string>() }
+    };
+
         public ChatHub(ILogger<ChatHub> logger)
         {
             _logger = logger;
         }
 
         // Método para enviar mensajes
-        public async Task SendMessage(string user, string message)
+        public async Task SendMessage(string room, string user, string message)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+            await Clients.Group(room).SendAsync("ReceiveMessage", room, user, message);
         }
 
         // Método para notificar cuando un usuario se conecta
@@ -69,21 +76,34 @@ namespace API.Hubs
         }
 
         // Método para recibir y establecer el nombre de usuario
-        public async Task SetUsername(string username)
+        public async Task SetUsername(string username, string room)
         {
-            string connectionId = Context.ConnectionId;
-            if (!string.IsNullOrEmpty(username))
+            await Groups.AddToGroupAsync(Context.ConnectionId, room);
+            Rooms[room].Add(username);
+            await Clients.Group(room).SendAsync("UserConnected", room, username, DateTime.Now.ToString("HH:mm:ss"));
+            await Clients.Group(room).SendAsync("UpdateUserList", room, Rooms[room]);
+        }
+
+        public async Task ChangeRoom(string username, string oldRoom, string newRoom)
+        {
+            if (oldRoom != newRoom)
             {
-                // Guardamos el nombre de usuario y la hora de conexión
-                string connectionTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-                _users[connectionId] = (username, connectionTime);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, oldRoom);
+                Rooms[oldRoom].Remove(username);
+                await Clients.Group(oldRoom).SendAsync("UserDisconnected", oldRoom, username, DateTime.Now.ToString("HH:mm:ss"), DateTime.Now.ToString("HH:mm:ss"));
 
-                // Enviar evento a todos los clientes sobre el nuevo usuario conectado
-                await Clients.All.SendAsync("UserConnected", username, connectionTime);
+                await Groups.AddToGroupAsync(Context.ConnectionId, newRoom);
+                Rooms[newRoom].Add(username);
+                await Clients.Group(newRoom).SendAsync("UserConnected", newRoom, username, DateTime.Now.ToString("HH:mm:ss"));
 
-                // Actualizamos la lista de usuarios conectados
-                await UpdateUserList();
+                await Clients.Group(oldRoom).SendAsync("UpdateUserList", oldRoom, Rooms[oldRoom]);
+                await Clients.Group(newRoom).SendAsync("UpdateUserList", newRoom, Rooms[newRoom]);
             }
+        }
+
+        public async Task RequestUserList(string room)
+        {
+            await Clients.Caller.SendAsync("UpdateUserList", room, Rooms[room]);
         }
     }
 }

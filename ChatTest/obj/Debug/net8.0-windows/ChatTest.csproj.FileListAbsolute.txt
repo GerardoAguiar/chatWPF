@@ -6,7 +6,6 @@ C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\bin\Debug\net8.0-windows\Chat
 C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\App.g.cs
 C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\ChatTest_MarkupCompile.cache
-C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\ChatTest_MarkupCompile.lref
 C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\MainWindow.baml
 C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\ChatTest.g.resources
 C:\Users\Usuario\Documents\GitHub\chatWPF\ChatTest\obj\Debug\net8.0-windows\ChatTest.GeneratedMSBuildEditorConfig.editorconfig
